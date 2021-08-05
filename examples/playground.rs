@@ -1,52 +1,29 @@
+use c::{collision, pos_and_bb_centered, pos_bb_xywh};
 use macroquad::prelude::*;
-use s2dc::Rect;
-
-enum Control {
-    Orig,
-    Proj,
-}
-
-impl Control {
-    fn name(&self) -> &str {
-        match *self {
-            Self::Orig => "original",
-            Self::Proj => "projected",
-        }
-    }
-}
+use s2dc as c;
 
 #[macroquad::main("s2dc playground")]
 async fn main() {
-    let mut orig_rect = Rect::new(100., 100., 32., 32.).unwrap();
-    let mut proj_rect = orig_rect;
-    let mut ctrl = Control::Orig;
     let mut solids = Vec::new();
     let mut start_point = None;
+    let player_bb = c::vec2(16, 16);
+    let mut player_pos = c::vec2(100, 100);
     loop {
         let speed = if is_key_down(KeyCode::LeftShift) {
-            1.0
+            1
         } else {
-            8.0
+            8
         };
-        let controlled = match ctrl {
-            Control::Orig => &mut orig_rect,
-            Control::Proj => &mut proj_rect,
-        };
-        if is_key_pressed(KeyCode::Enter) {
-            ctrl = match ctrl {
-                Control::Orig => Control::Proj,
-                Control::Proj => Control::Orig,
-            };
-        }
+        let controlled = &mut player_pos;
         if is_key_down(KeyCode::Left) {
-            *controlled.x_mut() -= speed;
+            controlled.x -= speed;
         } else if is_key_down(KeyCode::Right) {
-            *controlled.x_mut() += speed;
+            controlled.x += speed;
         }
         if is_key_down(KeyCode::Up) {
-            *controlled.y_mut() -= speed;
+            controlled.y -= speed;
         } else if is_key_down(KeyCode::Down) {
-            *controlled.y_mut() += speed;
+            controlled.y += speed;
         }
         if is_mouse_button_pressed(MouseButton::Left) {
             let mp = mouse_position();
@@ -54,56 +31,44 @@ async fn main() {
         }
         if let Some(point) = start_point {
             let mp = mouse_position();
-            if let Some(rect) = Rect::new(point.0, point.1, mp.0 - point.0, mp.1 - point.1) {
-                draw_rectangle_lines(*rect.x(), *rect.y(), *rect.w(), *rect.h(), 1.0, RED);
-                if is_mouse_button_released(MouseButton::Left) {
-                    solids.push(rect);
-                    start_point = None;
-                }
+            let (pos, bb) =
+                pos_and_bb_centered(point.0 as i32, point.1 as i32, mp.0 as i32, mp.1 as i32);
+            let (x, y, w, h) = pos_bb_xywh(pos, bb);
+            draw_rectangle_lines(x as f32, y as f32, w as f32, h as f32, 1.0, RED);
+            if is_mouse_button_released(MouseButton::Left) {
+                solids.push((pos, bb));
+                start_point = None;
             }
+            draw_rectangle(point.0, point.1, 1., 1., MAGENTA);
+            draw_line(
+                pos.x as f32,
+                pos.y as f32,
+                pos.x as f32 + bb.x as f32,
+                pos.y as f32 + bb.y as f32,
+                1.0,
+                GREEN,
+            );
+            draw_rectangle(pos.x as f32, pos.y as f32, 1., 1., YELLOW);
         }
-        let ctrl_rect = *controlled;
-        draw_text(
-            &format!("Controlling {} (enter)", ctrl.name()),
-            0.,
-            32.,
-            32.,
-            WHITE,
-        );
-        draw_rectangle(
-            *orig_rect.x(),
-            *orig_rect.y(),
-            *orig_rect.w(),
-            *orig_rect.h(),
-            WHITE,
-        );
-        draw_rectangle(
-            *proj_rect.x(),
-            *proj_rect.y(),
-            *proj_rect.w(),
-            *proj_rect.h(),
-            YELLOW,
-        );
-        let new = s2dc::solve(&orig_rect, &proj_rect, &solids);
-        for solid in &solids {
-            draw_rectangle(*solid.x(), *solid.y(), *solid.w(), *solid.h(), BROWN);
-            if let Some(intersect) = proj_rect.intersection(solid) {
-                draw_rectangle(
-                    *intersect.x(),
-                    *intersect.y(),
-                    *intersect.w(),
-                    *intersect.h(),
-                    RED,
-                );
+        let mut player_color = WHITE;
+        for &(pos, bb) in &solids {
+            let (x, y, w, h) = pos_bb_xywh(pos, bb);
+            let mut c2 = BROWN;
+            if collision(player_pos, player_bb, pos, bb) {
+                player_color = RED;
+                c2 = YELLOW;
             }
+            draw_rectangle(x as f32, y as f32, w as f32, h as f32, c2);
         }
-        let new_x = *new.x();
-        let new_y = *new.y();
-        draw_line(new_x + 16., new_y - 16., new_x + 16., new_y, 2.0, GREEN);
-        draw_line(new_x + 8., new_y - 8., new_x + 16., new_y, 2.0, GREEN);
-        draw_line(new_x + 24., new_y - 8., new_x + 16., new_y, 2.0, GREEN);
-        draw_rectangle(new_x, new_y, *new.w(), *new.h(), GREEN);
-        draw_text("C", *ctrl_rect.x() + 8.0, *ctrl_rect.y() + 24.0, 32.0, BLUE);
+        let (x, y, w, h) = pos_bb_xywh(player_pos, player_bb);
+        draw_rectangle(x as f32, y as f32, w as f32, h as f32, player_color);
+        draw_rectangle(
+            player_pos.x as f32 - 1.,
+            player_pos.y as f32 - 1.,
+            2.,
+            2.,
+            MAGENTA,
+        );
         next_frame().await
     }
 }

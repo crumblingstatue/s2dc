@@ -1,131 +1,38 @@
-use num_traits::Num;
+type Unit = i32;
 
-#[derive(Debug, Clone, Copy)]
-pub struct Rect<T> {
-    x: T,
-    y: T,
-    w: T,
-    h: T,
+#[derive(Clone, Copy, Debug)]
+pub struct Vec2 {
+    pub x: Unit,
+    pub y: Unit,
 }
 
-impl<T> Rect<T> {
-    pub fn x(&self) -> &T {
-        &self.x
-    }
-    pub fn x_mut(&mut self) -> &mut T {
-        &mut self.x
-    }
-    pub fn y(&self) -> &T {
-        &self.y
-    }
-    pub fn y_mut(&mut self) -> &mut T {
-        &mut self.y
-    }
-    pub fn w(&self) -> &T {
-        &self.w
-    }
-    pub fn h(&self) -> &T {
-        &self.h
-    }
+pub fn vec2(x: Unit, y: Unit) -> Vec2 {
+    Vec2 { x, y }
 }
 
-impl<T: Num + PartialOrd> Rect<T> {
-    pub fn new(x: T, y: T, w: T, h: T) -> Option<Self> {
-        if w < T::zero() || h < T::zero() {
-            None
-        } else {
-            Some(Self { x, y, w, h })
-        }
-    }
+fn center(v1: Unit, v2: Unit) -> Unit {
+    v1 + ((v2 - v1) / 2)
 }
 
-fn minmax<T: PartialOrd>(a: T, b: T) -> (T, T) {
-    if a < b {
-        (a, b)
-    } else {
-        (b, a)
-    }
+fn halfextent(v1: Unit, v2: Unit) -> Unit {
+    (v1.max(v2) - v1.min(v2)).abs() / 2
 }
 
-impl<T: Num + PartialOrd + Copy> Rect<T> {
-    pub fn intersection(&self, other: &Self) -> Option<Self> {
-        let self_right = self.x + self.w;
-        let other_right = other.x + other.w;
-        let self_bottom = self.y + self.h;
-        let other_bottom = other.y + other.h;
-        let (_, bigger_x) = minmax(self.x, other.x);
-        let (_, bigger_y) = minmax(self.y, other.y);
-        let (smaller_right, _) = minmax(self_right, other_right);
-        let (smaller_bottom, _) = minmax(self_bottom, other_bottom);
-        let x = bigger_x;
-        let y = bigger_y;
-        let w = smaller_right - bigger_x;
-        let h = smaller_bottom - bigger_y;
-        if x < smaller_right && y < smaller_bottom {
-            Some(Rect { x, y, w, h })
-        } else {
-            None
-        }
-    }
+pub fn pos_and_bb_centered(x1: Unit, y1: Unit, x2: Unit, y2: Unit) -> (Vec2, Vec2) {
+    let cx = center(x1, x2);
+    let cy = center(y1, y2);
+    let hhe = halfextent(x1, x2);
+    let vhe = halfextent(y1, y2);
+    (vec2(cx, cy), vec2(hhe, vhe))
 }
 
-#[test]
-fn test_intersection() {
-    use assert_matches::assert_matches;
-    let rect1 = Rect::new(12, 31, 20, 21).unwrap();
-    let rect2 = Rect::new(19, 42, 37, 31).unwrap();
-    let rect3 = Rect::new(41, 30, 34, 55).unwrap();
-    assert_matches!(
-        rect1.intersection(&rect2),
-        Some(Rect {
-            x: 19,
-            y: 42,
-            w: 13,
-            h: 10
-        })
-    );
-    assert_matches!(
-        rect2.intersection(&rect1),
-        Some(Rect {
-            x: 19,
-            y: 42,
-            w: 13,
-            h: 10
-        })
-    );
-    assert_matches!(
-        rect2.intersection(&rect3),
-        Some(Rect {
-            x: 41,
-            y: 42,
-            w: 15,
-            h: 31
-        })
-    );
-    assert_matches!(
-        rect3.intersection(&rect2),
-        Some(Rect {
-            x: 41,
-            y: 42,
-            w: 15,
-            h: 31
-        })
-    );
-    assert_matches!(rect1.intersection(&rect3), None);
-    assert_matches!(rect3.intersection(&rect1), None);
+pub fn pos_bb_xywh(pos: Vec2, bb: Vec2) -> (Unit, Unit, Unit, Unit) {
+    (pos.x - bb.x, pos.y - bb.y, bb.x * 2, bb.y * 2)
 }
 
-/// Takes in an original rectangle, the rectangle where the object should be (projected), and
-/// calculates the new position taking solid objects between these two rectangles into account.
-pub fn solve<T: Num + PartialOrd + Copy>(
-    original: &Rect<T>,
-    projected: &Rect<T>,
-    solids: &[Rect<T>],
-) -> Rect<T> {
-    for solid in solids {
-        if solid.intersection(projected).is_some() {
-            return *original;
-        }
-    }
-    *projected
+pub fn collision(p1: Vec2, bb1: Vec2, p2: Vec2, bb2: Vec2) -> bool {
+    p1.x + bb1.x > p2.x - bb2.x
+        && p1.x - bb1.x < p2.x + bb2.x
+        && p1.y + bb1.y > p2.y - bb2.y
+        && p1.y - bb1.y < p2.y + bb2.y
 }
