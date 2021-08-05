@@ -10,7 +10,13 @@ async fn main() {
         pos: c::vec2(100, 100),
         bb: c::vec2(16, 16),
     };
+    let mut vspeed = 0.0;
+    let gravity = 1.4;
+    let mut platformer_mode = false;
     loop {
+        if is_key_pressed(KeyCode::Tab) {
+            platformer_mode = !platformer_mode;
+        }
         let speed = if is_key_down(KeyCode::LeftShift) {
             1.
         } else {
@@ -26,6 +32,15 @@ async fn main() {
             c::move_y(&mut player, -speed, &mut accum, &solids);
         } else if is_key_down(KeyCode::Down) {
             c::move_y(&mut player, speed, &mut accum, &solids);
+        }
+        if platformer_mode {
+            vspeed += gravity;
+            if is_key_pressed(KeyCode::Space) {
+                vspeed = -16.0;
+            }
+            if c::move_y(&mut player, vspeed, &mut accum, &solids) {
+                vspeed = 0.0;
+            }
         }
         if is_mouse_button_pressed(MouseButton::Left) {
             let mp = mouse_position();
@@ -70,6 +85,20 @@ async fn main() {
             2.,
             2.,
             MAGENTA,
+        );
+        draw_text(
+            &format!(
+                "Platformer mode: {} (tab)",
+                if platformer_mode {
+                    "space to jump"
+                } else {
+                    "off"
+                }
+            ),
+            0.0,
+            24.0,
+            24.0,
+            WHITE,
         );
         next_frame().await
     }
