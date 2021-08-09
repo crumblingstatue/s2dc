@@ -23,22 +23,30 @@ async fn main() {
             17.62
         };
         let mut accum = 0.0;
+        let collider = |en: &Entity, offs| {
+            for solid in &solids {
+                if collision(en, solid, offs) {
+                    return true;
+                }
+            }
+            false
+        };
         if is_key_down(KeyCode::Left) {
-            c::move_x(&mut player, -speed, &mut accum, &solids);
+            c::move_x(&mut player, -speed, &mut accum, collider);
         } else if is_key_down(KeyCode::Right) {
-            c::move_x(&mut player, speed, &mut accum, &solids);
+            c::move_x(&mut player, speed, &mut accum, collider);
         }
         if is_key_down(KeyCode::Up) {
-            c::move_y(&mut player, -speed, &mut accum, &solids);
+            c::move_y(&mut player, -speed, &mut accum, collider);
         } else if is_key_down(KeyCode::Down) {
-            c::move_y(&mut player, speed, &mut accum, &solids);
+            c::move_y(&mut player, speed, &mut accum, collider);
         }
         if platformer_mode {
             vspeed += gravity;
             if is_key_pressed(KeyCode::Space) {
                 vspeed = -16.0;
             }
-            if c::move_y(&mut player, vspeed, &mut accum, &solids) {
+            if c::move_y(&mut player, vspeed, &mut accum, collider) {
                 vspeed = 0.0;
             }
         }

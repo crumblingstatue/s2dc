@@ -48,23 +48,17 @@ pub struct Entity {
     pub bb: Vec2,
 }
 
-fn collide(entity: &Entity, solids: &[Entity], offset: Vec2) -> bool {
-    for s in solids {
-        if collision(entity, s, offset) {
-            return true;
-        }
-    }
-    false
-}
-
-pub fn move_x(entity: &mut Entity, amount: f32, accum: &mut f32, solids: &[Entity]) -> bool {
+pub fn move_x<F>(entity: &mut Entity, amount: f32, accum: &mut f32, mut collide_at: F) -> bool
+where
+    F: FnMut(&Entity, Vec2) -> bool,
+{
     *accum += amount;
     let mut move_amount = accum.round() as i32;
     if move_amount != 0 {
         *accum -= move_amount as f32;
         let sign = move_amount.signum();
         while move_amount != 0 {
-            if !collide(entity, solids, vec2(sign, 0)) {
+            if !collide_at(entity, vec2(sign, 0)) {
                 //There is no Solid immediately beside us
                 entity.pos.x += sign;
                 move_amount -= sign;
@@ -77,14 +71,17 @@ pub fn move_x(entity: &mut Entity, amount: f32, accum: &mut f32, solids: &[Entit
     false
 }
 
-pub fn move_y(entity: &mut Entity, amount: f32, accum: &mut f32, solids: &[Entity]) -> bool {
+pub fn move_y<F>(entity: &mut Entity, amount: f32, accum: &mut f32, mut collide_at: F) -> bool
+where
+    F: FnMut(&Entity, Vec2) -> bool,
+{
     *accum += amount;
     let mut move_amount = accum.round() as i32;
     if move_amount != 0 {
         *accum -= move_amount as f32;
         let sign = move_amount.signum();
         while move_amount != 0 {
-            if !collide(entity, solids, vec2(0, sign)) {
+            if !collide_at(entity, vec2(0, sign)) {
                 //There is no Solid immediately beside us
                 entity.pos.y += sign;
                 move_amount -= sign;
