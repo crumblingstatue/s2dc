@@ -79,7 +79,8 @@ impl Entity {
 pub struct MobileEntity {
     /// The [`Entity`] component of this `MobileEntity`
     pub en: Entity,
-    accum: f32,
+    accum_x: f32,
+    accum_y: f32,
 }
 
 impl MobileEntity {
@@ -87,7 +88,8 @@ impl MobileEntity {
     pub fn from_pos_and_bb(pos: Vec2, bb: Vec2) -> Self {
         Self {
             en: Entity::from_pos_and_bb(pos, bb),
-            accum: 0.0,
+            accum_x: 0.0,
+            accum_y: 0.0,
         }
     }
     /// Move a set amount horizontally, taking collisions into account.
@@ -103,10 +105,10 @@ impl MobileEntity {
     where
         F: FnMut(&Entity, Vec2) -> bool,
     {
-        self.accum += amount;
-        let mut move_amount = self.accum.round() as i32;
+        self.accum_x += amount;
+        let mut move_amount = self.accum_x.round() as i32;
         if move_amount != 0 {
-            self.accum -= move_amount as f32;
+            self.accum_x -= move_amount as f32;
             let sign = move_amount.signum();
             while move_amount != 0 {
                 if would_collide(&self.en, vec2(sign, 0)) {
@@ -132,10 +134,10 @@ impl MobileEntity {
     where
         F: FnMut(&Entity, Vec2) -> bool,
     {
-        self.accum += amount;
-        let mut move_amount = self.accum.round() as i32;
+        self.accum_y += amount;
+        let mut move_amount = self.accum_y.round() as i32;
         if move_amount != 0 {
-            self.accum -= move_amount as f32;
+            self.accum_y -= move_amount as f32;
             let sign = move_amount.signum();
             while move_amount != 0 {
                 if would_collide(&self.en, vec2(0, sign)) {
