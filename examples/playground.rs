@@ -45,7 +45,8 @@ async fn main() {
             if is_key_pressed(KeyCode::Space) {
                 vspeed = -16.0;
             }
-            if player.move_y(vspeed, collider) {
+            if !player.move_y(vspeed, collider) {
+                // Reset vertical momentum so it doesn't accumulate while we're on the ground
                 vspeed = 0.0;
             }
         }

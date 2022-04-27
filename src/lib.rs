@@ -90,8 +90,16 @@ impl MobileEntity {
             accum: 0.0,
         }
     }
-    /// Move horizontally
-    pub fn move_x<F>(&mut self, amount: f32, mut collide_at: F) -> bool
+    /// Move a set amount horizontally, taking collisions into account.
+    ///
+    /// The `would_collide` function is a function that takes this entity and an offset
+    /// as parameters, and returns whether the entity would collide if offset.
+    ///
+    /// The usual way to do this is to keep a list of `Entity` that are the solids, and
+    /// go through each and call `entity.would_collide(solid, offset)` for each.
+    ///
+    /// Returns `true` if the move was unobstructed, `false` if there was a collision.
+    pub fn move_x<F>(&mut self, amount: f32, mut would_collide: F) -> bool
     where
         F: FnMut(&Entity, Vec2) -> bool,
     {
@@ -101,20 +109,26 @@ impl MobileEntity {
             self.accum -= move_amount as f32;
             let sign = move_amount.signum();
             while move_amount != 0 {
-                if !collide_at(&self.en, vec2(sign, 0)) {
-                    //There is no Solid immediately beside us
+                if would_collide(&self.en, vec2(sign, 0)) {
+                    return false;
+                } else {
                     self.en.pos.x += sign;
                     move_amount -= sign;
-                } else {
-                    //Hit a solid!
-                    return true;
                 }
             }
         }
-        false
+        true
     }
-    /// Move vertically
-    pub fn move_y<F>(&mut self, amount: f32, mut collide_at: F) -> bool
+    /// Move a set amount vertically, taking collisions into account.
+    ///
+    /// The `would_collide` function is a function that takes this entity and an offset
+    /// as parameters, and returns whether the entity would collide if offset.
+    ///
+    /// The usual way to do this is to keep a list of `Entity` that are the solids, and
+    /// go through each and call `entity.would_collide(solid, offset)` for each.
+    ///
+    /// Returns `true` if the move was unobstructed, `false` if there was a collision.
+    pub fn move_y<F>(&mut self, amount: f32, mut would_collide: F) -> bool
     where
         F: FnMut(&Entity, Vec2) -> bool,
     {
@@ -124,16 +138,14 @@ impl MobileEntity {
             self.accum -= move_amount as f32;
             let sign = move_amount.signum();
             while move_amount != 0 {
-                if !collide_at(&self.en, vec2(0, sign)) {
-                    //There is no Solid immediately beside us
+                if would_collide(&self.en, vec2(0, sign)) {
+                    return false;
+                } else {
                     self.en.pos.y += sign;
                     move_amount -= sign;
-                } else {
-                    //Hit a solid!
-                    return true;
                 }
             }
         }
-        false
+        true
     }
 }
