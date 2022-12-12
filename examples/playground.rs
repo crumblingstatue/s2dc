@@ -63,7 +63,7 @@ async fn main() {
                 mp.1 as i32,
             );
             let (x, y, w, h) = en.xywh();
-            draw_rectangle_lines(x as f32, y as f32, w as f32, h as f32, 1.0, RED);
+            draw_rectangle_lines(x as f32, y as f32, w as f32, h as f32, 2.0, RED);
             if is_mouse_button_released(MouseButton::Left) {
                 solids.push(en);
                 start_point = None;
