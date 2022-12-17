@@ -52,7 +52,11 @@ async fn main() {
                 vspeed = 0.0;
             }
         }
-        if is_mouse_button_pressed(MouseButton::Left) {
+        let mut egui_wants_ptr = false;
+        egui_macroquad::cfg(|ctx| {
+            egui_wants_ptr = ctx.wants_pointer_input();
+        });
+        if is_mouse_button_pressed(MouseButton::Left) && !egui_wants_ptr {
             let mp = mouse_position();
             start_point = Some(mp);
         }
