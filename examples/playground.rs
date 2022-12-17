@@ -96,6 +96,10 @@ async fn main() {
                 ui.heading("Player");
                 ui.add(egui::DragValue::new(&mut player.en.pos.x).prefix("x "));
                 ui.add(egui::DragValue::new(&mut player.en.pos.y).prefix("y "));
+                ui.heading("Level");
+                if ui.button("Clear").clicked() {
+                    solids.clear();
+                }
             });
         });
         let (x, y, w, h) = player.en.xywh();
