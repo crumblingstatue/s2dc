@@ -1,3 +1,4 @@
+use egui_macroquad::egui;
 use macroquad::prelude::*;
 use s2dc as c;
 
@@ -11,6 +12,7 @@ async fn main() {
     let mut platformer_mode = false;
     let mut solid_collision = true;
     loop {
+        clear_background(BLACK);
         if is_key_pressed(KeyCode::Tab) {
             platformer_mode = !platformer_mode;
         }
@@ -89,6 +91,13 @@ async fn main() {
             }
             draw_rectangle(x as f32, y as f32, w as f32, h as f32, c2);
         }
+        egui_macroquad::ui(|ctx| {
+            egui::Window::new("Playground").show(ctx, |ui| {
+                ui.heading("Player");
+                ui.add(egui::DragValue::new(&mut player.en.pos.x).prefix("x "));
+                ui.add(egui::DragValue::new(&mut player.en.pos.y).prefix("y "));
+            });
+        });
         let (x, y, w, h) = player.en.xywh();
         draw_rectangle(x as f32, y as f32, w as f32, h as f32, player_color);
         draw_rectangle(
@@ -117,6 +126,7 @@ async fn main() {
             24.0,
             WHITE,
         );
+        egui_macroquad::draw();
         next_frame().await
     }
 }
