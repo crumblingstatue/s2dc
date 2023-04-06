@@ -2,7 +2,7 @@
 //!
 //! Based on <https://maddythorson.medium.com/celeste-and-towerfall-physics-d24bd2ae0fc5>
 
-#![warn(missing_docs)]
+#![warn(missing_docs, missing_debug_implementations)]
 
 type Unit = i32;
 
@@ -76,6 +76,7 @@ impl Entity {
 }
 
 /// An [`Entity`] that can move.
+#[derive(Debug)]
 pub struct MobileEntity {
     /// The [`Entity`] component of this `MobileEntity`
     pub en: Entity,
