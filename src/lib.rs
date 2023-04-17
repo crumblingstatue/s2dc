@@ -8,6 +8,7 @@ type Unit = i32;
 
 /// A 2 dimensional mathematical vector (x, y)
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Vec2 {
     /// x component (horizontal)
     pub x: Unit,
@@ -32,6 +33,7 @@ fn halfextent(v1: Unit, v2: Unit) -> Unit {
 ///
 /// It has a 2d position, and a 2d bounding box that is centered on the position.
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Entity {
     /// Position. This is the center point of the entity.
     pub pos: Vec2,
@@ -77,6 +79,7 @@ impl Entity {
 
 /// An [`Entity`] that can move.
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MobileEntity {
     /// The [`Entity`] component of this `MobileEntity`
     pub en: Entity,
