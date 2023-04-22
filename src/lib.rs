@@ -75,6 +75,10 @@ impl Entity {
             && y + self.bb.y > other.pos.y - other.bb.y
             && y - self.bb.y < other.pos.y + other.bb.y
     }
+    /// Returns whether this entity collides with another
+    pub fn collides(&self, other: &Entity) -> bool {
+        self.would_collide(other, Vec2 { x: 0, y: 0 })
+    }
 }
 
 /// An [`Entity`] that can move.

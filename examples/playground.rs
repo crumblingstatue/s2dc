@@ -89,7 +89,7 @@ async fn main() {
         for solid in &solids {
             let (x, y, w, h) = solid.xywh();
             let mut c2 = BROWN;
-            if player.en.would_collide(solid, c::vec2(0, 0)) {
+            if player.en.collides(solid) {
                 player_color = RED;
                 c2 = YELLOW;
             }
