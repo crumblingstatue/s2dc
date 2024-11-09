@@ -1,4 +1,5 @@
 use egui_macroquad::egui;
+use egui_macroquad::macroquad;
 use macroquad::prelude::*;
 use s2dc as c;
 
