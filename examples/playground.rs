@@ -54,6 +54,10 @@ async fn main() {
                 vspeed = 0.0;
             }
         }
+        if player.en.pos.y > screen_height() as i32 {
+            player.en.pos.y = 0;
+        }
+        vspeed = vspeed.clamp(-96., 96.);
         let mut egui_wants_ptr = false;
         egui_macroquad::cfg(|ctx| {
             egui_wants_ptr = ctx.wants_pointer_input();
